@@ -8,10 +8,14 @@ use App\Texter\SmsTexter;
 use App\Texter\FaxTexter;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
+use App\Logger;
+use App\DependencyInjection\LoggerCompilerPass;
 
 require __DIR__ . '/vendor/autoload.php';
 
 $container = new ContainerBuilder();
+
+$container->autowire('logger', Logger::class);
 
 $container->autowire('order_controller', OrderController::class)
     ->setPublic(true)
@@ -23,6 +27,7 @@ $container->autowire('database', Database::class);
 $container->autowire('texter.sms', SmsTexter::class)
     ->addArgument("service.sms.com")
     ->addArgument("apikey123")
+    ->addTag('with_logger')
 ;
 
 $container->autowire('texter.fax', FaxTexter::class);
@@ -30,6 +35,7 @@ $container->autowire('texter.fax', FaxTexter::class);
 $container->autowire('mailer.gmail', GmailMailer::class)
     ->addArgument("ayoub@gmail.com")
     ->addArgument("123456")
+    ->addTag('with_logger')
 ;
 
 $container->autowire('smtp.gmail', SmtpMailer::class)
@@ -46,6 +52,9 @@ $container->setAlias('App\Texter\SmsTexter', 'texter.sms');
 $container->setAlias('App\Texter\FaxTexter', 'texter.fax');
 $container->setAlias('App\Texter\TexterInterface', 'texter.sms');
 $container->setAlias('App\Mailer\MailerInterface', 'mailer.gmail');
+$container->setAlias('App\Logger', 'logger');
+
+$container->addCompilerPass(new LoggerCompilerPass());
 
 $container->compile();
 
